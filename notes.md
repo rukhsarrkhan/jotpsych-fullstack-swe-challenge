@@ -45,6 +45,12 @@ Future Steps
 Figure out issue with decryption in the audio blob and fix it
 
 
+Notes:
+/record-motto is /audio :)
+App version change mock works when version is changed in APIService 
+Audio recording works, encryption works, decryption fails - this was the only remaining component of the challenge, will still work on it, want to finish it, let's see how it goes :)
+
+
 
 
 
