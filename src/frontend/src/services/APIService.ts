@@ -1,19 +1,24 @@
 class APIService {
   private static instance: APIService;
   private baseUrl: string;
-  private appVersion: string;
+  public appVersion: string; // Make appVersion public to allow updates
+  private setAppVersion?: (version: string) => void; // Make setAppVersion optional
 
   private constructor() {
     this.baseUrl = "http://localhost:3002";
-    this.appVersion = "1.0.0";
+    this.appVersion = "1.2.0"; 
   }
 
-  public static getInstance(): APIService {
+  public static getInstance(setAppVersion?: (version: string) => void): APIService {
     if (!APIService.instance) {
       APIService.instance = new APIService();
     }
+    if (setAppVersion) {
+      APIService.instance.setAppVersion = setAppVersion;
+    }
     return APIService.instance;
   }
+
 
   public async request(
     endpoint: string,
@@ -27,9 +32,11 @@ class APIService {
     };
 
     if (auth) {
-      // get access token somehow
+      const token = localStorage.getItem("access_token");
+      console.log("Retrieved token:", token); // Debugging
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
+        console.log("Authorization header set:", headers["Authorization"]); // Debugging
       }
     }
 
@@ -40,11 +47,21 @@ class APIService {
     });
 
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      if (response.status === 426) {
+        const data = await response.json();
+        if (this.setAppVersion) {
+          this.setAppVersion("1.2.0"); // Mock updating the app version
+        }
+        throw new Error(data.message);
+      } else {
+        const errorText = await response.text();
+        console.error("Network response was not ok:", errorText); // Debugging
+        throw new Error(errorText);
+      }
     }
 
     return response.json();
   }
 }
 
-export default APIService.getInstance();
+export default APIService;
